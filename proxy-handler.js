@@ -10,7 +10,14 @@ proxy.on('proxyReq', (proxyReq, req, res) => {
 });
 
 proxy.on('proxyRes', (proxyRes, req, res) => {
-  proxyRes.pipe(res);
+  if (proxyRes.statusCode < 500) {
+    proxyRes.pipe(res);
+  } else {
+    // We would want to intercept and write a generic error message in the event
+    // that the downstream service gives an error.  This is a common practice to
+    // prevent leaking of code implementation details to the calling client.
+    res.status(500).end('Internal Server Error');
+  }
 });
 
 module.exports = function (target) {
